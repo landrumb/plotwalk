@@ -39,6 +39,22 @@ def path_integral(matrix, start_point, end_point, line_start, line_end, variance
 
     return integral
 
+def darken_by_contribution(matrix, start_point, end_point, line_start, line_end, variance):
+    num_points = int(euclidean(start_point, end_point)) * 2
+    line_points = interpolate_line_segment(np.array(start_point), np.array(end_point), num_points)
+
+    modified_matrix = np.copy(matrix)
+
+    for point in line_points:
+        x, y = int(point[0]), int(point[1])
+        if 0 <= x < modified_matrix.shape[1] and 0 <= y < modified_matrix.shape[0]:
+            distance_to_line = perpendicular_distance_and_projection(point, line_start, line_end)
+            if distance_to_line is not None:
+                weight = gaussian_weight(distance_to_line, variance)
+                # Darken the pixel by reducing its value
+                modified_matrix[y, x] = max(modified_matrix[y, x] - weight, 0)
+
+    return modified_matrix
 
 def point_on_inscribed_circle(m, n, theta):
     # Radius is half the smaller of the two dimensions
@@ -54,3 +70,6 @@ def point_on_inscribed_circle(m, n, theta):
 
     return x, y
 
+class ChordRepresentation:
+    def __init__(self, dims, num_pegs, thread_darkness, variance):
+        
