@@ -1,9 +1,8 @@
 from PIL import Image
 import numpy as np
 
-def load_image():
+def load_image(image_path='et.png'):
     # Load the image
-    image_path = 'et.png'
     image = Image.open(image_path)
 
     # Ensure image has an alpha (transparency) channel
