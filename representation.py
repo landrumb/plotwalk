@@ -115,6 +115,9 @@ class DiscreteChordRepresentation:
             self.chords[start_peg, end_peg] = 1  # Mark the chord as added
             self.chords[end_peg, start_peg] = 1  # Since chord is bi-directional
 
+    def set_chords(self, chords):
+        self.chords = chords
+
     def get_updated_image(self):
         # Ensure the darkness doesn't cause values to go negative
         updated_img = np.clip(self.img + self.matrix, 0, 1)
