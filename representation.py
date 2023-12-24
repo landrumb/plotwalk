@@ -144,6 +144,29 @@ class DiscreteChordRepresentation:
         plt.tight_layout()
         plt.show()
 
+    def visualize_chords(self):
+        # Plot the circle
+        pegs = np.array(self.pegs)
+
+        fig, ax = plt.subplots(1, 2)
+
+        ax[0].plot(pegs[:,0], pegs[:,1], 'o')
+        ax[0].set_aspect('equal')
+
+        # Plot the chords
+        for i in range(len(self.pegs)):
+            for j in range(i+1, len(self.pegs)):
+                ax[0].plot([pegs[i][0], pegs[j][0]], [pegs[i][1], pegs[j][1]], 'k-', alpha=self.chords[i, j])
+
+        processed_img = 255 * self.img - 255
+
+        ax[1].imshow(processed_img, cmap='gray')
+        ax[1].set_title("True Image")
+        ax[1].axis('off')
+
+        plt.tight_layout()
+        plt.show()
+
 
 # %%
 if __name__ == "__main__":
