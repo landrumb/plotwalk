@@ -1,12 +1,16 @@
 from PIL import Image
 import numpy as np
 
-def load_image(image_path='et.png'):
+def load_image(image_path='et.png', size=None):
     # Load the image
     image = Image.open(image_path)
 
     # Ensure image has an alpha (transparency) channel
     image = image.convert("RGBA")
+
+    # Resize the image if a size is provided
+    if size is not None:
+        image = image.resize(size)
 
     # Create an image object for the output image
     gray_image = Image.new("L", image.size)

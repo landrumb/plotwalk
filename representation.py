@@ -94,8 +94,8 @@ def point_on_inscribed_circle(m, n, theta):
 
 # %%
 class DiscreteChordRepresentation:
-    def __init__(self, img_path="et.png", num_pegs=64, thread_darkness = 1.0, variance=0.05):
-        self.img = 1 - load_image(img_path)
+    def __init__(self, img_path="et.png", num_pegs=64, thread_darkness = 1.0, variance=0.05, size=None):
+        self.img = 1 - load_image(img_path, size)
         self.num_pegs = num_pegs
         self.thread_darkness = thread_darkness
         self.variance = variance
@@ -105,6 +105,7 @@ class DiscreteChordRepresentation:
 
         self.pegs = [point_on_inscribed_circle(self.dims[0], self.dims[1], theta) for theta in np.linspace(0, 2*math.pi, num_pegs, endpoint=False)]
         self.chords = np.zeros((num_pegs, num_pegs)) # if a chord from a to b is included, chords[a, b] = 1
+        self.weights = np.zeros((num_pegs, num_pegs)) # weights[a, b] is the weight of the chord from a to b
 
     def add_chord(self, start_peg, end_peg):
         if self.chords[start_peg, end_peg] == 0:  # Check if chord has not been added yet
@@ -115,8 +116,8 @@ class DiscreteChordRepresentation:
             self.chords[start_peg, end_peg] = 1  # Mark the chord as added
             self.chords[end_peg, start_peg] = 1  # Since chord is bi-directional
 
-    def set_chords(self, chords):
-        self.chords = chords
+    def set_weights(self, weights):
+        self.weights = weights
 
     def get_updated_image(self):
         # Ensure the darkness doesn't cause values to go negative
@@ -126,7 +127,7 @@ class DiscreteChordRepresentation:
     def visualize_current_state(self):
         updated_img = self.get_updated_image()
 
-        fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+        _, axes = plt.subplots(1, 3, figsize=(15, 5))
         ax = axes.ravel()
 
         ax[0].imshow(self.img, cmap='gray')
@@ -144,11 +145,36 @@ class DiscreteChordRepresentation:
         plt.tight_layout()
         plt.show()
 
-    def visualize_chords(self):
+    def get_weight_img(self):
+        # Return an array like self.img, but where values are from the chord matrix
+
+        weight_image = np.zeros(self.dims)
+        pegs = np.array(self.pegs)
+
+        # Iterate over the chords matrix
+        for i in range(len(self.pegs)):
+            for j in range(i+1, len(self.pegs)):
+                x1, y1 = int(pegs[i][0]), int(pegs[i][1])
+                x2, y2 = int(pegs[j][0]), int(pegs[j][1])
+
+                # Iterate over the pixels in the image from (x1, y1) to (x2, y2)
+                for x in range(min(x1, x2), max(x1, x2)):
+                    for y in range(min(y1, y2), max(y1, y2)):
+                        # Calculate the distance from the pixel to the line segment
+                        distance_to_line = perpendicular_distance_and_projection((x, y), (x1, y1), (x2, y2))
+                        if distance_to_line is not None:
+                            # Calculate the weight of the chord
+                            weight = gaussian_weight(distance_to_line, self.variance)
+                            # Darken the pixel by reducing its value
+                            weight_image[y, x] = max(weight_image[y, x] - weight, 0)
+
+        return weight_image
+
+    def visualize_weights(self):
         # Plot the circle
         pegs = np.array(self.pegs)
 
-        fig, ax = plt.subplots(1, 2)
+        _, ax = plt.subplots(1, 2)
 
         ax[0].plot(pegs[:,0], pegs[:,1], 'o')
         ax[0].set_aspect('equal')
