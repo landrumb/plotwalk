@@ -34,12 +34,8 @@ def projection_placement_distance(point, line_point1, line_point2):
     return projection, relative_placement, distance
 
 # Switching to pytorch for differentiability
-def projection_placement_distance_torch(point, line_point1, line_point2):
+def projection_placement_distance_torch(P, A, B):
     """tuple of (projection, relative_placement, distance) using PyTorch"""
-    A = torch.tensor(line_point1, dtype=torch.float32)
-    B = torch.tensor(line_point2, dtype=torch.float32)
-    P = torch.tensor(point, dtype=torch.float32)
-
     AB = B - A
     AP = P - A
     t = torch.dot(AP, AB) / torch.dot(AB, AB)
@@ -48,6 +44,9 @@ def projection_placement_distance_torch(point, line_point1, line_point2):
     distance = torch.norm(projection - P)  # Keep as tensor for autograd compatibility
 
     return projection, relative_placement, distance
+
+def gaussian_weight_torch(distance, variance):
+    return torch.exp(-distance**2 / (2 * variance**2))
 
 
 
