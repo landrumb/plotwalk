@@ -135,8 +135,23 @@ def batched_line_occlusions(occlusion, magnitudes, start_points, end_points, var
 
     return occlusion
 
+def custom_transform(tensor, min_value=0.01, asymptote=2, transition_width=0.1):
+    # Clamping smaller values
+    clamped_tensor = torch.clamp(tensor, min=min_value)
 
-def loss(X, img, variance=torch.tensor(0.005)):
+    # Asymptotic approach to 2 for values greater than 1
+    asymptotic_tensor = asymptote - (1 / (clamped_tensor + 1))
+
+    # Smooth transition function
+    transition = torch.sigmoid((clamped_tensor - 1) / transition_width)
+
+    # Combining both transformations with a smooth transition
+    transformed_tensor = transition * asymptotic_tensor + (1 - transition) * clamped_tensor
+    
+    return transformed_tensor
+
+
+def loss(X, img, variance=torch.tensor(0.005), sigmoid=False, clamp=None, custom_transform=False):
     """X is the symmetric matrix of chord weights, img is the target image.
     
     For the sake of being image-quality agnostic, we scale all considerations of distance by the width of the image, so x and y are always in the range [0, 1]."""
@@ -154,8 +169,12 @@ def loss(X, img, variance=torch.tensor(0.005)):
     #             occlusion = add_line_occlusion(occlusion, X[i, j], points[i], points[j], variance)
     occlusion = all_occlusions(X, img.shape, variance=variance)
 
-    torch.sigmoid_(occlusion)
+    if sigmoid:
+        torch.sigmoid_(occlusion)
     # print(occlusion)
+    
+    if clamp is not None:
+        torch.clamp_(occlusion, min=clamp[0], max=clamp[1])
 
     return torch.sum((img - occlusion)**2), occlusion
 
