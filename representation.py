@@ -94,8 +94,8 @@ def point_on_inscribed_circle(m, n, theta):
 
 # %%
 class DiscreteChordRepresentation:
-    def __init__(self, img_path="et.png", num_pegs=64, thread_darkness = 1.0, variance=0.05, size=None):
-        self.img = 1 - load_image(img_path, size)
+    def __init__(self, img_path="et.png", num_pegs=64, thread_darkness = 1.0, variance=0.05, size=None, square=False):
+        self.img = 1 - load_image(img_path, size, square)
         self.num_pegs = num_pegs
         self.thread_darkness = thread_darkness
         self.variance = variance
@@ -196,8 +196,8 @@ class DiscreteChordRepresentation:
 
 # %%
 if __name__ == "__main__":
-    dcr = DiscreteChordRepresentation()
+    dcr = DiscreteChordRepresentation(variance=10)
 
-    dcr.add_chord(0, 32)
+    dcr.add_chord(0, 30)
     dcr.visualize_current_state()
 # %%

@@ -1,7 +1,8 @@
 from PIL import Image
 import numpy as np
+import matplotlib.pyplot as plt
 
-def load_image(image_path='et.png', size=None):
+def load_image(image_path='et.png', size=None, square=False):
     # Load the image
     image = Image.open(image_path)
 
@@ -11,6 +12,14 @@ def load_image(image_path='et.png', size=None):
     # Resize the image if a size is provided
     if size is not None:
         image = image.resize(size)
+
+    if square:
+        # Crop the image to a square
+        width, height = image.size
+        if width > height:
+            image = image.crop(((width-height)//2, 0, (width+height)//2, height))
+        elif height > width:
+            image = image.crop((0, (height-width)//2, width, (height+width)//2))
 
     # Create an image object for the output image
     gray_image = Image.new("L", image.size)

@@ -38,12 +38,33 @@ def projection_placement_distance_torch(P, A, B):
     """tuple of (projection, relative_placement, distance) using PyTorch"""
     AB = B - A
     AP = P - A
+    # print(AP.dtype, AB.dtype)
     t = torch.dot(AP, AB) / torch.dot(AB, AB)
     projection = A + t * AB
     relative_placement = t  # Keep as tensor for autograd compatibility
     distance = torch.norm(projection - P)  # Keep as tensor for autograd compatibility
 
     return projection, relative_placement, distance
+
+def batch_projection_placement_distance_torch(P, A, B):
+    """tuple of (projection, relative_placement, distance) using PyTorch for 3D tensor P"""
+    AB = B - A
+    AP = P - A.unsqueeze(0)  # Adjust dimensions for broadcasting
+    t = torch.sum(AP * AB, dim=-1) / torch.sum(AB * AB)
+    projection = A + t.unsqueeze(-1) * AB  # Add dimension for broadcasting
+    distance = torch.norm(projection - P, dim=-1)  # Compute norm along the last dimension
+
+    return projection, t, distance
+
+def doublebatch_projection_placement_distance_torch(xy, start_point, end_point):
+    # Vectorized computation of projection, placement, and distance
+    AB = end_point - start_point
+    AP = xy - start_point
+    t = torch.sum(AP * AB, dim=-1) / torch.sum(AB * AB)
+    projection = start_point + t.unsqueeze(-1) * AB
+    distance = torch.norm(projection - xy, dim=-1)
+    return projection, t, distance
+
 
 def gaussian_weight_torch(distance, variance):
     return torch.exp(-distance**2 / (2 * variance**2))
